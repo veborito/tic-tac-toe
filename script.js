@@ -1,8 +1,8 @@
 const gameBoard = (function () {
   let board = [
-    [" ", " ", " "],
-    [" ", " ", " "],
-    [" ", " ", " "]
+    ["X", " ", " "],
+    [" ", "O", " "],
+    [" ", " ", "X"]
   ];
 
   let state = "ONGOING"
@@ -101,22 +101,20 @@ function player (player_name, player_symbol) {
 
 const displayController = (function () {
   const board = gameBoard.getBoard();
-  const print = () => { 
+  const rows = document.getElementsByClassName("row");
+
+  const render = () => {
     for (let i = 0; i < board.length; i++) {
-      let line = "";
+      let row = rows[i];
+      console.log(row);
       for (let j = 0; j < board[i].length; j++) {
-        if (j + 1 < board[i].length) {
-          line += ` ${board[i][j]} |`;
-        } else {
-          line += ` ${board[i][j]}`
+        if (board[i][j] == 'O') {
+          const newCircle = document.createElement('img');
+          console.log(row[j]);
         }
       }
-      console.log(line);
-      if (i + 1 < board.length) {
-        console.log('-----------');
-      }
     }
-  };
+  }
 
   const printWinner = (player) => {
     console.log(`${player.name} won the game!`);
@@ -124,7 +122,7 @@ const displayController = (function () {
 
   const printDraw = () => console.log("It's a draw!"); 
 
-  return { print, printWinner, printDraw };
+  return { render, printWinner, printDraw };
 
 })();
 
@@ -150,10 +148,12 @@ const playGame = (function () {
     gameBoard.updateState(player);
     return true;
   }
-  while (gameBoard.getState() == "ONGOING") {
-    while (!round(player1));
-    if (gameBoard.getState() != "ONGOING")
-      break;
-    while (!round(player2));
-  }
-})(); 
+  // while (gameBoard.getState() == "ONGOING") {
+  //   while (!round(player1));
+  //   if (gameBoard.getState() != "ONGOING")
+  //     break;
+  //   while (!round(player2));
+  // }
+})();
+
+displayController.render();
