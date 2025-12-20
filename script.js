@@ -1,12 +1,16 @@
 const gameBoard = (function () {
   let board = [
-    ["X", " ", " "],
-    [" ", "O", " "],
-    [" ", " ", "X"]
+    [" ", " ", " "],
+    [" ", " ", " "],
+    [" ", " ", " "]
   ];
 
-  let state = "ONGOING"
-    
+  let state = "ONGOING";
+  let turn = 0;
+  let winner;
+  let player1;
+  let player2;
+
   const isPlayable = (position) => { 
     if (board[position.row][position.col] == " ") {
       return true;
@@ -25,24 +29,32 @@ const gameBoard = (function () {
     return true;
   }
 
+  const updateState = (symbol) => {
+    if (checkDiagonals() || checkColumns() || checkRows()) {
+      state = "END";
+      if (player1.symbol == symbol) {
+        displayController.showWinner(player1)
+      } else {
+        displayController.showWinner(player2)
+      }
+    } else if (isBoardFull()) {
+      state = "DRAW";
+      displayController.showDraw();
+    }
+  }
+
   const updateBoard = (position, symbol) => {
     board[position.row][position.col] = symbol;
+    updateState();
   };
 
-  const updateState = (player) => {
-    if (checkDiagonals() || checkColumns() || checkRows()) {
-      displayController.printWinner(player);
-      state = "END";
-    } else if (isBoardFull()) {
-      displayController.printDraw();
-      state = "DRAW";
-    }
+  const updateTurn = () => {
+    turn += 1;
   }
 
   const checkColumns = () => {
     for (let i = 0; i < board.length; i++) {
       let first = board[0][i];
-      console.log(first);
       if (first != " " && first == board[1][i] && first == board[2][i] ) {
         return true;
       }
@@ -75,12 +87,25 @@ const gameBoard = (function () {
     }
   };
 
+  const setPlayers = (p1, p2) => {
+    player1 = p1;
+    player2 = p2;
+  }
   const getState = () => state;
 
   const getBoard = () => board;
 
-  return { isPlayable, updateBoard, updateState,getState, getBoard };
+  const getTurn = () => turn;
 
+  return { 
+    isPlayable, 
+    updateBoard, 
+    updateTurn,
+    setPlayers,
+    getState, 
+    getBoard, 
+    getTurn
+  };
 })();
 
 
@@ -88,41 +113,50 @@ function player (player_name, player_symbol) {
   const name = player_name;
   const symbol = player_symbol;
 
-  const play = (position) => {
-    if (gameBoard.isPlayable(position)) {
-      gameBoard.updateBoard(position, symbol);
-    } else {
-      throw("Error: you can't play on this postion");
-    }
-  }
-
-  return { name, symbol, play};
+  return { name, symbol};
 }
 
 const displayController = (function () {
-  const board = gameBoard.getBoard();
   const rows = document.getElementsByClassName("row");
 
-  const render = () => {
-    for (let i = 0; i < board.length; i++) {
-      let row = rows[i];
-      console.log(row);
-      for (let j = 0; j < board[i].length; j++) {
-        if (board[i][j] == 'O') {
-          const newCircle = document.createElement('img');
-          console.log(row[j]);
-        }
+  const addElement = (event) => {
+    let column = event.target;
+    let row = column.parentNode;
+    let position = {
+      row: parseInt(row.dataset.row),
+      col: parseInt(column.dataset.column),
+    }
+    let symbol = "";
+    if (gameBoard.isPlayable(position)) {
+      const newElement = document.createElement('img');
+      if (gameBoard.getTurn() % 2 == 0) {
+        newElement.src = "./ex.svg";
+        symbol = 'X';
+      } else {
+        newElement.src = "./circle.svg";
+        symbol = 'O';
       }
+      column.appendChild(newElement);
+      gameBoard.updateBoard(position, symbol);
+      gameBoard.updateTurn()
+    } else {
+      console.error("Error: you can't play on this postion");
     }
   }
 
-  const printWinner = (player) => {
-    console.log(`${player.name} won the game!`);
+  for (let row of rows) {
+    for (let col of row.children) {
+      col.addEventListener("click", addElement);
+    }
   }
 
-  const printDraw = () => console.log("It's a draw!"); 
+  const showWinner = (player) => {
+    alert(`${player.name} won the game!`);
+  }
 
-  return { render, printWinner, printDraw };
+  const showDraw = () => alert("It's a draw!"); 
+
+  return { showWinner, showDraw };
 
 })();
 
@@ -130,30 +164,5 @@ const playGame = (function () {
   const player1 = player("Jhon", "X");
   const player2 = player("Doe", "O");
 
-  const round = (player) => {
-    let inputRow = parseInt(prompt("Chose a row: "));
-    let inputCol = parseInt(prompt("Chose a col: "));
-    let position = {
-      row: inputRow,
-      col: inputCol,
-    };
-
-    try{
-      player.play(position);
-    } catch(error) {
-      return false;
-    }
-
-    displayController.print();
-    gameBoard.updateState(player);
-    return true;
-  }
-  // while (gameBoard.getState() == "ONGOING") {
-  //   while (!round(player1));
-  //   if (gameBoard.getState() != "ONGOING")
-  //     break;
-  //   while (!round(player2));
-  // }
+  gameBoard.setPlayers(player1, player2);
 })();
-
-displayController.render();
