@@ -126,6 +126,7 @@ button {
   height: 6rem;
   font-size: 3rem;
   padding: 15px;
+  outline: 0;
 }
 
 button#confirm {
