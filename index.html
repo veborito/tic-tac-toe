@@ -8,6 +8,20 @@
   <script src="script.js" defer></script>
 </head>
 <body>
+  <dialog id="start-dialog">
+    <form action="">
+      <div>
+        <label for="player1">Player 1</label>
+        <input type="text" name="player_1" id="player1" required>
+      </div>
+      <div>
+        <label for="player2">Player 2</label>
+        <input type="text" name="player_2" id="player2" required>
+      </div>
+      <button id="confirm" type="submit">confirm</button>
+    </form>
+  </dialog>
+  <dialog id="end-dialog"></dialog>
   <div class="container">
     <div data-row="0" class="row">
       <div data-column="0" class="col"></div>
@@ -24,6 +38,10 @@
       <div data-column="1" class="col"></div>
       <div data-column="2" class="col"></div>
     </div>
+  </div>
+  <div class="buttons">
+    <button class="home"id="start" type="button">START</button>
+    <button class="home" id="reset" type="button">RESET</button>
   </div>
 </body>
 </html>

@@ -7,7 +7,6 @@ const gameBoard = (function () {
 
   let state = "ONGOING";
   let turn = 0;
-  let winner;
   let player1;
   let player2;
 
@@ -29,6 +28,15 @@ const gameBoard = (function () {
     return true;
   }
 
+  const resetBoard = () => {
+    for (let i = 0; i < board.length; i++) {
+      for (let j = 0; j < board.length; j++) {
+        board[i][j] = " ";
+      }
+    }
+    state = "ONGOING";
+  }
+
   const updateState = (symbol) => {
     if (checkDiagonals() || checkColumns() || checkRows()) {
       state = "END";
@@ -45,7 +53,7 @@ const gameBoard = (function () {
 
   const updateBoard = (position, symbol) => {
     board[position.row][position.col] = symbol;
-    updateState();
+    updateState(symbol);
   };
 
   const updateTurn = () => {
@@ -99,7 +107,8 @@ const gameBoard = (function () {
 
   return { 
     isPlayable, 
-    updateBoard, 
+    resetBoard,
+    updateBoard,
     updateTurn,
     setPlayers,
     getState, 
@@ -118,6 +127,24 @@ function player (player_name, player_symbol) {
 
 const displayController = (function () {
   const rows = document.getElementsByClassName("row");
+  const endDialog = document.getElementById("end-dialog");
+  const startDialog = document.getElementById("start-dialog");
+  const form = document.querySelector("form");
+  const startButton = document.getElementById("start");
+  const resetButton = document.getElementById("reset");
+  
+  form.addEventListener("submit", (event) => {
+    event.preventDefault()
+    const formData = new FormData(event.target);
+    const player1Name = formData.get("player_1");
+    const player2Name = formData.get("player_2");
+    const player1 = player(player1Name, "X");
+    const player2 = player(player2Name, "O");
+    gameBoard.setPlayers(player1, player2);
+    startDialog.close();
+  });
+  
+  endDialog.addEventListener("click", (event) => event.target.close())
 
   const addElement = (event) => {
     let column = event.target;
@@ -127,7 +154,8 @@ const displayController = (function () {
       col: parseInt(column.dataset.column),
     }
     let symbol = "";
-    if (gameBoard.isPlayable(position)) {
+    if (gameBoard.isPlayable(position) && gameBoard.getState() != "END") {
+      console.log("click");
       const newElement = document.createElement('img');
       if (gameBoard.getTurn() % 2 == 0) {
         newElement.src = "./ex.svg";
@@ -139,30 +167,50 @@ const displayController = (function () {
       column.appendChild(newElement);
       gameBoard.updateBoard(position, symbol);
       gameBoard.updateTurn()
-    } else {
-      console.error("Error: you can't play on this postion");
     }
   }
 
-  for (let row of rows) {
-    for (let col of row.children) {
-      col.addEventListener("click", addElement);
+  const startGame = () => {
+    if (gameBoard.getState() === "END")
+      resetGame();
+    startDialog.showModal();
+    
+    for (let row of rows) {
+      for (let col of row.children) {
+        col.addEventListener("click", addElement);
+      }
     }
   }
 
+  const resetGame = () => {
+    for (let row of rows) {
+      for (let col of row.children) {
+        col.textContent = "";
+      }
+    }
+    endDialog.textContent = "";
+    gameBoard.resetBoard();
+  }
+
+  startButton.addEventListener("click", startGame);
+  resetButton.addEventListener("click", resetGame);
+  
   const showWinner = (player) => {
-    alert(`${player.name} won the game!`);
+    const winnerBanner = document.createElement("h1");
+    
+    winnerBanner.textContent = `${player.name} won the game!`;
+    endDialog.appendChild(winnerBanner);
+    endDialog.showModal();
   }
 
-  const showDraw = () => alert("It's a draw!"); 
+  const showDraw = () => {
+    const winnerBanner = document.createElement("h1");
+    
+    winnerBanner.textContent = `It's a draw!`;
+    endDialog.appendChild(winnerBanner);
+    endDialog.showModal();
+  }; 
 
   return { showWinner, showDraw };
 
-})();
-
-const playGame = (function () {
-  const player1 = player("Jhon", "X");
-  const player2 = player("Doe", "O");
-
-  gameBoard.setPlayers(player1, player2);
 })();
